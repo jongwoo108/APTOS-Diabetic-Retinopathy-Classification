@@ -34,6 +34,7 @@
 
 ### Confusion Matrix
 <img width="788" height="701" alt="다운로드 (1)" src="https://github.com/user-attachments/assets/ed7e225a-1e6f-4d41-9736-a5ffa940711b" />
+
 *주석: 인접 클래스 간 오진을 제외하면 중증도 구분이 논리적으로 이루어지고 있음을 확인.*
 
 ### Grad-CAM (Attention Map)
