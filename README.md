@@ -39,6 +39,7 @@
 
 ### Grad-CAM (Attention Map)
  <img width="794" height="394" alt="다운로드 (2)" src="https://github.com/user-attachments/assets/ce4c303d-d6e9-423f-9e80-9ed028f1f2d2" />
+
 *주석: 모델이 안구 내 혈관 및 실제 병변 의심 부위를 주요 특징으로 추출하고 있음.*
 
 ## Tech Stack
