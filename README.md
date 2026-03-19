@@ -30,14 +30,14 @@
 - **Solution:** **Grad-CAM** 시각화 기법 구현.
 - **Result:** 모델이 실제 병변 부위에 집중하고 있음을 히트맵으로 증명하여 설명 가능성 확보.
 
-## 📊 Visualization
+## Visualization
 
 ### Confusion Matrix
-![Confusion Matrix](./results/confusion_matrix.png)  
+<img width="788" height="701" alt="다운로드 (1)" src="https://github.com/user-attachments/assets/ed7e225a-1e6f-4d41-9736-a5ffa940711b" />
 *주석: 인접 클래스 간 오진을 제외하면 중증도 구분이 논리적으로 이루어지고 있음을 확인.*
 
 ### Grad-CAM (Attention Map)
-![Grad-CAM](./results/grad_cam_result.png)  
+ <img width="794" height="394" alt="다운로드 (2)" src="https://github.com/user-attachments/assets/ce4c303d-d6e9-423f-9e80-9ed028f1f2d2" />
 *주석: 모델이 안구 내 혈관 및 실제 병변 의심 부위를 주요 특징으로 추출하고 있음.*
 
 ## Tech Stack
