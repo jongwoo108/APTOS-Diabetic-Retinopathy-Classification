@@ -1,4 +1,4 @@
-# APTOS 2019 — 1등 솔루션 (Guanshuo Xu) vs 우리 v2 비교
+# APTOS 2019 — 1등 솔루션 (Guanshuo Xu) vs v2 비교
 https://www.kaggle.com/competitions/aptos2019-blindness-detection/writeups/guanshuo-xu-1st-place-solution-summary
 
 ## 1등 최종 점수: Private 0.936 | 우리 v2: Private 0.883
