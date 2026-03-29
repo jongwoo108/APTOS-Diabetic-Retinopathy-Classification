@@ -3,7 +3,7 @@
 > **당뇨망막병증 자동 등급 분류 — 버그 디버깅부터 Ordinal Regression 앙상블까지의 체계적 개선 과정**
 
 망막 안저 영상으로 당뇨망막병증의 중증도(0~4단계)를 판별하는 딥러닝 모델을 개발하고,
-**v1(Private 0.800) → v2 앙상블(Private 0.890)** 으로 점진적으로 성능을 끌어올린 프로젝트입니다.
+**v1(Private 0.800) → v2 5-fold 앙상블(Private 0.892)** 으로 점진적으로 성능을 끌어올린 프로젝트입니다.
 
 ---
 
@@ -12,10 +12,14 @@
 | Version | Model | Strategy | Private Score | Public Score |
 |---------|-------|----------|:---:|:---:|
 | v1 | EfficientNet-B0 (단일) | CrossEntropyLoss, augmentation 없음 | 0.800 | 0.572 |
-| v2 single | EfficientNet-B3 (단일) | CORAL Loss + WeightedSampler + Augmentation | 0.883 | 0.712 |
-| **v2 ensemble** | **EfficientNet-B3 (3-fold)** | **위 전략 + 앙상블** | **0.890** | **0.736** |
+| v2 single | EfficientNet-B3 (단일 fold) | CORAL Loss + WeightedSampler + Augmentation | 0.883 | 0.712 |
+| v2 3-fold | EfficientNet-B3 (3-fold) | 위 전략 + 앙상블 | 0.890 | 0.736 |
+| v2 4-fold | EfficientNet-B3 (4-fold) | 위 전략 + 앙상블 | 0.891 | 0.739 |
+| **v2 5-fold** | **EfficientNet-B3 (5-fold)** | **위 전략 + 앙상블** | **0.892** | **0.735** |
 
 > 평가지표: **Quadratic Weighted Kappa (QWK)** — 클래스 간 순서와 거리를 고려하는 의료 영상 표준 지표
+
+**v1 → v2 최종: Private +0.092 향상**
 
 ---
 
@@ -64,15 +68,27 @@
 
 ### Phase 3. 앙상블 및 안정성
 
-#### 3-1. K-Fold 앙상블
+#### 3-1. 5-Fold 앙상블
 - 5-Fold Stratified CV 구성, 각 fold별 독립 학습 후 로짓 평균 앙상블.
-- 3-Fold 앙상블만으로 단일 모델 대비 Private +0.007 추가 상승.
+- fold 수 증가에 따른 성능 변화:
 
-| Fold | Best Kappa |
-|------|:---------:|
-| Fold 0 | 0.8975 |
-| Fold 1 | 0.9000 |
-| Fold 2 | 0.8984 |
+| 앙상블 | Folds | Private | 단일 모델 대비 |
+|--------|:-----:|:-------:|:----------:|
+| 단일 모델 | 1 | 0.883 | — |
+| 3-fold | 0, 1, 2 | 0.890 | +0.007 |
+| 4-fold | 0, 1, 2, 3 | 0.891 | +0.008 |
+| **5-fold** | **0, 1, 2, 3, 4** | **0.892** | **+0.009** |
+
+- 각 fold별 Validation Kappa:
+
+| Fold | Best Kappa | Best Epoch |
+|------|:---------:|:---------:|
+| Fold 0 | 0.8975 | 24 |
+| Fold 1 | 0.9000 | 16 |
+| Fold 2 | 0.8984 | 18 |
+| Fold 3 | 0.8919 | 15 |
+| Fold 4 | 0.8937 | 20 |
+| **평균** | **0.8963** | — |
 
 #### 3-2. 학습 안정성 설계
 - 무료 Colab 환경의 런타임 끊김에 대비하여 매 epoch Google Drive 체크포인트 저장 + 자동 이어하기(resume) 구현.
@@ -88,7 +104,7 @@
 |------|----------|---------------|
 | 데이터 | 2019 + 2015 DR + IDRiD + Messidor (~40,000장) | 2019만 (3,662장) |
 | Pseudo labeling | ✅ test set soft label로 재학습 | 미적용 |
-| 모델 앙상블 | 4종 아키텍처 × 8개 모델 | 1종 × 3-fold |
+| 모델 앙상블 | 4종 아키텍처 × 8개 모델 | 1종 × 5-fold |
 | 입력 크기 | 512×512 | 300×300 |
 | Pooling | GeM (Generalized Mean Pooling) | Average Pooling |
 | 전처리 | 없음 (단순 resize) | Ben Graham |
@@ -135,11 +151,13 @@
 ```
 ├── APTOS_v2_CORAL.ipynb          # 재학습 코드 (Colab)
 ├── aptos_kaggle_inference.py      # 캐글 제출 코드 (단일 모델)
-├── aptos_kaggle_ensemble.py       # 캐글 제출 코드 (앙상블)
+├── aptos_kaggle_ensemble.py       # 캐글 제출 코드 (5-fold 앙상블)
 ├── aptos_checkpoints/
 │   ├── best_fold0.pth
 │   ├── best_fold1.pth
-│   └── best_fold2.pth
+│   ├── best_fold2.pth
+│   ├── best_fold3.pth
+│   └── best_fold4.pth
 └── README.md
 ```
 
@@ -151,3 +169,4 @@
 2. **평가지표가 전략을 결정한다** — QWK의 순서형 특성이 CORAL Loss 선택을 직접 결정했다.
 3. **제약 조건 안에서 우선순위를 정하라** — 무료 Colab이라는 한계 내에서 가장 효과적인 4가지 전략을 선별 적용했다.
 4. **천장을 알아야 방향이 보인다** — 1등 솔루션 분석으로 다음 단계의 핵심이 데이터 확보임을 파악했다.
+5. **앙상블의 수확 체감** — 1→3 fold에서 +0.007, 3→5 fold에서 +0.002. 같은 아키텍처의 fold 추가보다 다른 아키텍처 추가가 더 효과적.
